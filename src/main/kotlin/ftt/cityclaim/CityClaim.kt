@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.context.CommandContext
 import ftt.sql.CityclaimManager
 import ftt.sql.PlayerClaimData
-import me.drex.itsours.claim.ClaimList
+import me.drex.itsours.claim.list.ClaimList
 import me.lucko.fabric.api.permissions.v0.Permissions
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
@@ -66,7 +66,7 @@ object CityClaim : ModInitializer {
                     return@forEach
                 }
                 cityManager.removeClaimOwner(claim)
-                anyClaim.roleManager.getRole(CLAIM_ROLE)?.players()?.clear()
+                anyClaim.groupManager.getGroup(CLAIM_ROLE)?.players()?.clear()
             }
         }
     }
@@ -127,7 +127,7 @@ object CityClaim : ModInitializer {
                 return 0
             }
             val claimItem = ClaimList.getClaim(claimData.claim.split("@")[0]).getOrNull()
-            claimItem?.roleManager?.getRole(CLAIM_ROLE)?.players()?.add(profile.id)
+            claimItem?.groupManager?.getGroup(CLAIM_ROLE)?.players()?.add(profile.id)
         }
         sendFeedback(context, "成功租地分享給 ${profile.name}")
         return 1
@@ -145,7 +145,7 @@ object CityClaim : ModInitializer {
         for (claimData in rentClaims) {
             cityManager.removeSharedClaim(claimData, profile)
             val claimItem = ClaimList.getClaim(claimData.claim.split("@")[0]).getOrNull()
-            claimItem?.roleManager?.getRole(CLAIM_ROLE)?.players()?.remove(profile.id)
+            claimItem?.groupManager?.getGroup(CLAIM_ROLE)?.players()?.remove(profile.id)
         }
         sendFeedback(context, "已取消 ${profile.name} 的租地權限")
         return 1
@@ -273,7 +273,7 @@ object CityClaim : ModInitializer {
             return 0
         }
 
-        val trustedRole = claim.roleManager.getRole(CLAIM_ROLE) ?: return 0
+        val trustedRole = claim.groupManager.getGroup(CLAIM_ROLE) ?: return 0
         if (cityManager.rentClaim(claim, player) == 0) {
             sendFeedback(context, "租用失敗，請確認領地是否可租用")
             return 0
