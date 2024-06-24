@@ -107,6 +107,8 @@ object CityClaim : ModInitializer {
                         argument("period", IntegerArgumentType.integer(1)).executes(::registerClaim)
                     )
                 )
+            ).then(
+                literal("unrent").requires(checkPermission(PERMISSION_REGISTER)).executes(::unrentClaim)
             )
         )
     }
@@ -307,7 +309,7 @@ object CityClaim : ModInitializer {
         }
         val playerClaimData = cityManager.getClaim(claim)
         if (playerClaimData == null) {
-            sendFeedback(context, "該領地無法租借")
+            sendFeedback(context, "目前無人租用，有需要請聯絡 @Howie 租地")
             return 0
         }
 
