@@ -252,7 +252,7 @@ object CityClaim : ModInitializer {
 
         val rentableClaim = cityManager.getClaim(claim)
         if (rentableClaim == null) {
-            sendFeedback(context, "無法租借該領地")
+            sendFeedback(context, "目前無人租用，有需要請聯絡 @Howie 租地")
             return 0
         }
 
@@ -284,6 +284,18 @@ object CityClaim : ModInitializer {
         sendFeedback(context, "你租用了領地 ${claim.fullName}！剩下 ${money - price} 元")
         sendFeedback(context, "自動續租功能會自動開啟，不需要請關閉")
         return 1
+    }
+
+    private fun unrentClaim(context: CommandContext<ServerCommandSource>): Int {
+        val player = context.source.player ?: return 0
+        val claim = ClaimList.getClaimAt(player).getOrNull() ?: return 0
+        val claimData = cityManager.getClaim(claim) ?: return 0
+        if (cityManager.removeClaimOwner(claimData) != 0) {
+            sendFeedback(context, "已退租租地 "+claim.fullName)
+            return 1
+        }
+        sendFeedback(context, "無租地被退租")
+        return 0
     }
 
     private fun checkClaim(context: CommandContext<ServerCommandSource>): Int {
