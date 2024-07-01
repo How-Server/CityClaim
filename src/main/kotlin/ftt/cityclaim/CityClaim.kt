@@ -292,6 +292,7 @@ object CityClaim : ModInitializer {
         val player = context.source.player ?: return 0
         val claim = ClaimList.getClaimAt(player).getOrNull() ?: return 0
         val claimData = cityManager.getClaim(claim) ?: return 0
+        claim.groupManager.getGroup(CLAIM_ROLE)?.players()?.clear()
         if (cityManager.removeClaimOwner(claimData) != 0) {
             sendFeedback(context, "已退租租地 "+claim.fullName)
             return 1
