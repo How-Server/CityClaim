@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.6-SNAPSHOT'
+	id 'fabric-loom' version '1.7-SNAPSHOT'
 	id 'maven-publish'
   id "org.jetbrains.kotlin.jvm" version "1.9.22"
 }
@@ -40,7 +40,7 @@ dependencies {
 	implementation("org.xerial:sqlite-jdbc:${project.sqlite_version}")
 
 	modImplementation files('dependencies/diamondeconomy.jar')
-	modImplementation files('dependencies/ItsOurs-1.5.0-mc-24w21b.jar')
+	modImplementation files('dependencies/ItsOurs-1.5.0+1.21.2-pre2.jar')
 	modImplementation include("me.lucko:fabric-permissions-api:${project.permission_api_version}")
 }
 
