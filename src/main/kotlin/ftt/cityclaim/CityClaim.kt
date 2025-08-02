@@ -13,20 +13,22 @@ import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
 import net.fabricmc.fabric.api.networking.v1.PacketSender
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
+import net.minecraft.block.entity.SignBlockEntity
 import net.minecraft.command.CommandRegistryAccess
-import net.minecraft.command.argument.EntityArgumentType
 import net.minecraft.command.argument.GameProfileArgumentType
+import net.minecraft.entity.decoration.ArmorStandEntity
+import net.minecraft.entity.decoration.ItemFrameEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.server.MinecraftServer
-import net.minecraft.server.command.CommandManager.RegistrationEnvironment
-import net.minecraft.server.command.CommandManager.argument
-import net.minecraft.server.command.CommandManager.literal
+import net.minecraft.server.command.CommandManager.*
 import net.minecraft.server.command.ServerCommandSource
 import net.minecraft.server.network.ServerPlayNetworkHandler
 import net.minecraft.text.Text
+import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 import java.util.function.Predicate
 import kotlin.jvm.optionals.getOrNull
 
@@ -39,6 +41,8 @@ object CityClaim : ModInitializer {
     private val logger = LoggerFactory.getLogger("cityclaim")
     private val moneyManager = DiamondUtils.getDatabaseManager();
     private lateinit var cityManager: CityclaimManager;
+    private lateinit var server: MinecraftServer;
+
     override fun onInitialize() {
         // 初始化
         ServerLifecycleEvents.SERVER_STARTING.register(::initDatabase);
@@ -72,11 +76,68 @@ object CityClaim : ModInitializer {
     }
 
     private fun initDatabase(server: MinecraftServer) {
+        this.server = server
         cityManager = CityclaimManager(server)
     }
 
     private fun stopDatabase(server: MinecraftServer) {
         cityManager.stopConnection();
+    }
+
+    private fun countEntitiesInClaim(claim: me.drex.itsours.claim.AbstractClaim): EntityCount {
+        val world = server.getWorld(claim.dimension)
+        if (world == null) {
+            return EntityCount(0, 0, 0)
+        }
+
+        val claimBox = Box(
+            claim.box.min.x.toDouble(), 70.0, claim.box.min.z.toDouble(),
+            claim.box.max.x.toDouble(), 116.0, claim.box.max.z.toDouble()
+        )
+
+        var armorStandCount = 0
+        var itemFrameCount = 0
+        var signCount = 0
+
+        world.getEntitiesByClass(ArmorStandEntity::class.java, claimBox) { true }.forEach { _ -> armorStandCount++ }
+        world.getEntitiesByClass(ItemFrameEntity::class.java, claimBox) { true }.forEach { _ -> itemFrameCount++ }
+
+        val minPos = BlockPos(claim.box.min.x, 70, claim.box.min.z)
+        val maxPos = BlockPos(claim.box.max.x, 116, claim.box.max.z)
+
+        BlockPos.iterate(minPos, maxPos).forEach { pos ->
+            val blockEntity = world.getBlockEntity(pos)
+            if (blockEntity is SignBlockEntity) {
+                var hasText = false
+                for (i in 0..3) {
+                    val frontText = blockEntity.frontText.getMessage(i, false)
+                    if (frontText.string.trim().isNotEmpty()) {
+                        hasText = true
+                        break
+                    }
+                }
+                if (!hasText) {
+                    for (i in 0..3) {
+                        val backText = blockEntity.backText.getMessage(i, false)
+                        if (backText.string.trim().isNotEmpty()) {
+                            hasText = true
+                            break
+                        }
+                    }
+                }
+
+                if (hasText) signCount++
+            }
+        }
+
+        return EntityCount(armorStandCount, itemFrameCount, signCount)
+    }
+
+    private fun calculateEntityFee(entityCount: EntityCount): Int {
+        val armorStandFee = entityCount.armorStands * 1
+        val itemFrameFee = entityCount.itemFrames * 1
+        val signFee = entityCount.signs * 1
+        return armorStandFee + itemFrameFee + signFee
     }
 
     private fun registerCommands(
@@ -211,8 +272,18 @@ object CityClaim : ModInitializer {
 
     private fun renewClaim(claim: PlayerClaimData): Boolean {
         val money = moneyManager.getBalanceFromUUID(claim.uuid)
-        val price = claim.cost
-        if (money < price) {
+        val basePrice = claim.cost
+
+        val claimObject = ClaimList.getClaim(claim.claim.split("@")[0]).getOrNull()
+        var totalPrice = basePrice
+
+        if (claimObject != null) {
+            val entityCount = countEntitiesInClaim(claimObject)
+            val entityFee = calculateEntityFee(entityCount)
+            totalPrice = basePrice + entityFee
+        }
+
+        if (money < totalPrice) {
             return false
         }
         if (claim.renew == false) {
@@ -222,7 +293,7 @@ object CityClaim : ModInitializer {
             cityManager.removeClaimOwner(claim)
             return false
         }
-        return moneyManager.changeBalance(claim.uuid, -price)
+        return moneyManager.changeBalance(claim.uuid, -totalPrice)
     }
 
     private fun checkAndRenewClaim(player: PlayerEntity): Boolean {
@@ -320,12 +391,22 @@ object CityClaim : ModInitializer {
             dateStr = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date(timestamp))
         }
         val claimName = playerClaimData.claim.split("@")[0]
+
+        val entityCount = countEntitiesInClaim(claim)
+        val entityFee = calculateEntityFee(entityCount)
+        val totalCost = playerClaimData.cost + entityFee
+
         val message = """
-            $claimName
-            價格：${playerClaimData.cost} 元，租期：${playerClaimData.daysPerRent} 天
-            目前／最後租借人：${playerClaimData.name ?: "無"}
-            到期時間：${dateStr}
-        """.trimIndent()
+            §6$claimName
+            §e基本租金：§6${playerClaimData.cost} 元　§f租期：${playerClaimData.daysPerRent} 天
+            §e目前／最後租借人：§f${playerClaimData.name ?: "無"}
+            §e到期時間：§f$dateStr
+            §e實體使用量：
+              §7盔甲座 §f${entityCount.armorStands}　§7展示框 §f${entityCount.itemFrames}　§7告示牌 §f${entityCount.signs}
+            §e實體使用費用：§6${entityFee} 元
+            §e§l總價：§c$totalCost 元
+            """.trimIndent()
+
         sendFeedback(context, message)
         return 1
     }
@@ -342,4 +423,9 @@ object CityClaim : ModInitializer {
         }
         return context.source.sendFeedback({ Text.literal(message) }, false);
     }
+    data class EntityCount(
+        val armorStands: Int,
+        val itemFrames: Int,
+        val signs: Int
+    )
 }
