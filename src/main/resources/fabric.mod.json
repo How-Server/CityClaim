@@ -20,20 +20,9 @@
 				"value": "ftt.cityclaim.CityClaim",
 				"adapter": "kotlin"
 			}
-		],
-		"client": [
-			{
-				"value": "ftt.cityclaim.CityClaimClient",
-				"adapter": "kotlin"
-			}
 		]
 	},
 	"mixins": [
-		"cityclaim.mixins.json",
-		{
-			"config": "cityclaim.client.mixins.json",
-			"environment": "client"
-		}
 	],
 	"depends": {
 		"minecraft": ">1.20.4",
