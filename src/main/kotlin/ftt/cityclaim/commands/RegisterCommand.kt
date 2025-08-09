@@ -21,7 +21,7 @@ object RegisterCommand {
         }
         val result = cityManager.registerClaim(claim, cost, daysPerRent)
         if (result) {
-            sendFeedback(context, "註冊成功！${claim.fullName}，價格：${cost}，租借時間：${daysPerRent}")
+            sendFeedback(context, "註冊成功！${claim.fullName}，價格：${cost} 元，租借時間：${daysPerRent} 天")
             return 1
         }
         sendFeedback(context, "註冊失敗")

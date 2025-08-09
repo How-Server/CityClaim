@@ -15,7 +15,7 @@ object CheckCommand {
         val player = context.source.player ?: return 0
         val claim = ClaimList.getClaimAt(player).getOrNull()
         if (claim == null) {
-            sendFeedback(context, "這裡沒有領地")
+            sendFeedback(context, "這裡沒有租地")
             return 0
         }
         val playerClaimData = cityManager.getClaim(claim)

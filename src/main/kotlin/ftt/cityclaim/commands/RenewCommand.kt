@@ -20,7 +20,7 @@ object RenewCommand {
         } else if (result > 0) {
             sendFeedback(context, "已停用自動續租")
         } else {
-            sendFeedback(context, "你沒有租借的領地可以續租")
+            sendFeedback(context, "你還沒租借租地")
         }
         return 1
     }

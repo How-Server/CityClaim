@@ -1,5 +1,6 @@
 package ftt.cityclaim.commands
 
+import com.gmail.sneakdevs.diamondeconomy.DiamondUtils
 import com.mojang.brigadier.context.CommandContext
 import ftt.cityclaim.CityClaim.CLAIM_ROLE
 import ftt.cityclaim.CityClaim.cityManager
@@ -17,12 +18,12 @@ object RentCommand {
         val claim = ClaimList.getClaimAt(player).getOrNull()
 
         if (checkAndRenewClaim(player)) {
-            sendFeedback(context, "你已經有租借領地了")
+            sendFeedback(context, "你已經有租借租地了")
             return 0
         }
 
         if (claim == null) {
-            sendFeedback(context, "這裡沒有領地")
+            sendFeedback(context, "這裡沒有租地")
             return 0
         }
 
@@ -33,12 +34,12 @@ object RentCommand {
         }
 
         if((rentableClaim.endTime ?: 0) > System.currentTimeMillis()) {
-            sendFeedback(context, "該領地已被租借")
+            sendFeedback(context, "該地已被租借")
             return 0
         }
 
         if (rentableClaim.renew == true && renewClaim(rentableClaim)) {
-            sendFeedback(context, "該領地已被租借")
+            sendFeedback(context, "該地已被租借")
             return 0
         }
 
@@ -51,14 +52,14 @@ object RentCommand {
 
         val trustedRole = claim.groupManager.getGroup(CLAIM_ROLE) ?: return 0
         if (cityManager.rentClaim(claim, player) == 0) {
-            sendFeedback(context, "租用失敗，請確認領地是否可租用")
+            sendFeedback(context, "租用失敗，請確認租地是否可租用")
             return 0
         }
 
         moneyManager.changeBalance(player.uuidAsString, -price)
         trustedRole.players().add(player.uuid)
-        sendFeedback(context, "你租用了領地 ${claim.fullName}！剩下 ${money - price} 元")
-        sendFeedback(context, "自動續租功能會自動開啟，不需要請關閉")
+        sendFeedback(context, "你租用了租地 ${claim.fullName}！§7餘額：${DiamondUtils.formatNumber(money - price)} 元")
+        sendFeedback(context, "自動續租功能會自動開啟，不需要請 /city renew off 關閉")
         return 1
     }
 

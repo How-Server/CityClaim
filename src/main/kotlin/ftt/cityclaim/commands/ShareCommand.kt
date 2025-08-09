@@ -22,13 +22,13 @@ object ShareCommand {
         for (claimData in rentClaims) {
             val result = cityManager.shareClaim(claimData, profile)
             if (result == -1) {
-                sendFeedback(context, "你已經把租地分享給 ${profile.name} 了")
+                sendFeedback(context, "你已經分享過租地權限給 ${profile.name} 了")
                 return 0
             }
             val claimItem = ClaimList.getClaim(claimData.claim.split("@")[0]).getOrNull()
             claimItem?.groupManager?.getGroup(CLAIM_ROLE)?.players()?.add(profile.id)
         }
-        sendFeedback(context, "成功租地分享給 ${profile.name}")
+        sendFeedback(context, "成功分享租地權限給 ${profile.name}")
         return 1
     }
 
