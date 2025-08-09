@@ -1,0 +1,70 @@
+package ftt.cityclaim.commands
+
+import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.arguments.IntegerArgumentType
+import com.mojang.brigadier.context.CommandContext
+import ftt.cityclaim.CityClaim
+import ftt.cityclaim.utils.Feedback.sendFeedback
+import me.lucko.fabric.api.permissions.v0.Permissions
+import net.minecraft.command.CommandRegistryAccess
+import net.minecraft.command.argument.GameProfileArgumentType
+import net.minecraft.server.command.CommandManager
+import net.minecraft.server.command.ServerCommandSource
+import java.util.function.Predicate
+
+object CityCommands {
+    private const val BASIC = "${CityClaim.MODID}.basic"
+    private const val REGISTER = "${CityClaim.MODID}.register"
+
+    fun register(
+        dispatcher: CommandDispatcher<ServerCommandSource>,
+        registryAccess: CommandRegistryAccess,
+        environment: CommandManager.RegistrationEnvironment){
+        dispatcher.register(
+            CommandManager.literal("city").requires(checkPermission((BASIC))).executes(::showGuide)
+            .then(CommandManager.literal("rent").executes(RentCommand::rentClaim))
+
+            .then(CommandManager.literal("check").executes(CheckCommand::checkClaim))
+
+            .then(CommandManager.literal("renew")
+                .then(CommandManager.literal("on").executes { context -> RenewCommand.toggleRenewClaim(context, true) })
+                .then(CommandManager.literal("off").executes { context -> RenewCommand.toggleRenewClaim(context, false) }))
+
+            .then(CommandManager.literal("share")
+                .then(CommandManager.argument("player", GameProfileArgumentType.gameProfile()).executes(ShareCommand::shareClaim)))
+
+            .then(CommandManager.literal("unshare")
+                .then(CommandManager.argument("player", GameProfileArgumentType.gameProfile()).executes(ShareCommand::unshareClaim)))
+
+            .then(CommandManager.literal("register").requires(checkPermission(REGISTER))
+                .then(CommandManager.argument("cost", IntegerArgumentType.integer(1))
+                    .then(CommandManager.argument("period", IntegerArgumentType.integer(1)).executes(RegisterCommand::registerClaim))))
+
+            .then(CommandManager.literal("unrent").requires(checkPermission(REGISTER)).executes(RentCommand::unrentClaim))
+        )
+    }
+
+    private fun checkPermission(permission: String): Predicate<ServerCommandSource> {
+        return Predicate { source ->
+            val player = source.player ?: return@Predicate false
+            Permissions.check(player, permission)
+        }
+    }
+
+    fun showGuide(context: CommandContext<ServerCommandSource>): Int {
+        var message = """
+            /city rent 承租目前所在的租地
+            /city check 查看目前所在租地的租約及實體用量
+            /city renew 開啟/關閉自動續約（預設開啟）
+            /city share <player> 分享租地給其他玩家
+            /city unshare <player> 取消其他玩家的租地分享
+        """.trimIndent()
+
+        val player = context.source.player
+        if (player != null && player.hasPermissionLevel(4)) {
+            message = message.plus("\n/city register <cost> <period> 註冊租地給玩家使用 cost:價格 period:天數")
+        }
+        sendFeedback(context, message, false)
+        return 1
+    }
+}
