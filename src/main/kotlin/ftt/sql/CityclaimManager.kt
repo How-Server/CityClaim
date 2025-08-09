@@ -9,15 +9,14 @@ import java.sql.ResultSet
 
 class  CityclaimManager(server: MinecraftServer) {
 
-    private var database: Database;
+    private var database: Database = Database(server)
 
     init {
-        database = Database(server)
         initTable()
     }
 
     fun stopConnection() {
-        database.close();
+        database.close()
     }
 
     fun renewClaim(claim: PlayerClaimData): Int {
@@ -28,17 +27,17 @@ class  CityclaimManager(server: MinecraftServer) {
             it.setLong(1, endTime)
             it.setString(2, claim.claim)
             it.setLong(3, now)
-            it.executeUpdate();
+            it.executeUpdate()
         }) ?: 0
     }
 
 
     fun setRenewClaim(player: PlayerEntity, state: Boolean): Int {
-        val sql = "UPDATE player_claim_data SET renew = ? WHERE uuid = ?;";
+        val sql = "UPDATE player_claim_data SET renew = ? WHERE uuid = ?;"
         return database.prepare(sql, {
             it.setInt(1, if (state) 1 else 0)
             it.setString(2, player.uuidAsString)
-            it.executeUpdate();
+            it.executeUpdate()
         }) ?: 0
     }
 
@@ -54,11 +53,11 @@ class  CityclaimManager(server: MinecraftServer) {
             it.setLong(3, endTime)
             it.setString(4, getClaimName(claim))
             it.setLong(5, now)
-            it.executeUpdate();
+            it.executeUpdate()
         }) ?: 0
 
         if (result > 0) {
-            removeSharedClaim(target);
+            removeSharedClaim(target)
         }
         return result
     }
@@ -198,6 +197,4 @@ class  CityclaimManager(server: MinecraftServer) {
             it.execute()
         })
     }
-
-
 }

@@ -6,16 +6,15 @@ import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.PreparedStatement
 import java.sql.SQLException
-import java.util.function.Predicate
 
 class Database(server: MinecraftServer) {
 
-    private val filename = "cityclaim.sqlite";
+    private val filename = "cityclaim.sqlite"
     private var url: String? = null
-    var connection: Connection? = null;
+    var connection: Connection? = null
 
     init {
-        val file = server.getSavePath(WorldSavePath.ROOT).resolve(filename).toFile();
+        val file = server.getSavePath(WorldSavePath.ROOT).resolve(filename).toFile()
         if (!file.exists()) {
             file.createNewFile()
         }
@@ -23,8 +22,8 @@ class Database(server: MinecraftServer) {
         connection = connect()
     }
 
-    public fun close() {
-        connection?.close();
+    fun close() {
+        connection?.close()
     }
 
     private fun connect(): Connection? {
