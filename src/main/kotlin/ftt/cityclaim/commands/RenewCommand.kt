@@ -1,5 +1,6 @@
 package ftt.cityclaim.commands
 
+import com.gmail.sneakdevs.diamondeconomy.sql.TransactionType
 import com.mojang.brigadier.context.CommandContext
 import ftt.cityclaim.CityClaim.cityManager
 import ftt.cityclaim.CityClaim.moneyManager
@@ -48,7 +49,7 @@ object RenewCommand {
             cityManager.removeClaimOwner(claim)
             return false
         }
-        return moneyManager.changeBalance(claim.uuid, -totalPrice)
+        return moneyManager.changeBalance(claim.uuid, TransactionType.EXPENSE,-totalPrice, "City中央都市 - 續租 ${claimObject?.fullName}")
     }
 
     fun checkAndRenewClaim(player: PlayerEntity): Boolean {

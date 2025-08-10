@@ -37,7 +37,7 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-language-kotlin:${project.fabric_kotlin_version}"
 	implementation("org.xerial:sqlite-jdbc:${project.sqlite_version}")
 
-	modImplementation files('dependencies/diamondeconomy-2.0.0+1.21.7.jar')
+	modImplementation files('dependencies/diamondeconomy-3.0.0+1.21.7.jar')
 	modImplementation files('dependencies/ItsOurs.jar')
 	modImplementation include("me.lucko:fabric-permissions-api:${project.permission_api_version}")
 }

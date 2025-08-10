@@ -1,6 +1,7 @@
 package ftt.cityclaim.commands
 
 import com.gmail.sneakdevs.diamondeconomy.DiamondUtils
+import com.gmail.sneakdevs.diamondeconomy.sql.TransactionType
 import com.mojang.brigadier.context.CommandContext
 import ftt.cityclaim.CityClaim.CLAIM_ROLE
 import ftt.cityclaim.CityClaim.cityManager
@@ -56,7 +57,7 @@ object RentCommand {
             return 0
         }
 
-        moneyManager.changeBalance(player.uuidAsString, -price)
+        moneyManager.changeBalance(player.uuidAsString, TransactionType.EXPENSE, -price, "City中央都市 - 租用 ${claim.fullName}")
         trustedRole.players().add(player.uuid)
         sendFeedback(context, "你租用了租地 ${claim.fullName}！§7餘額：${DiamondUtils.formatNumber(money - price)} 元")
         sendFeedback(context, "自動續租功能會自動開啟，不需要請 /city renew off 關閉")
