@@ -44,7 +44,8 @@ object CheckCommand {
         message = if (timestamp.toDouble() != 0.0) {
             message.plus("""
                     
-                §e實體使用量：§7盔甲座 §f${entityCount.armorStands}　§7展示框 §f${entityCount.itemFrames}　§7有字告示牌 §f${entityCount.signs}
+                §e實體使用量(x1)：§7無字盔甲座 §f${entityCount.armorStands}　§7展示框 §f${entityCount.itemFrames}
+                §e文字使用量(x2)：§7有字盔甲座 §f${entityCount.namedArmorStands}　§7展示櫃 §f${entityCount.displayCases}　§7有字告示牌 §f${entityCount.signs}
                 §e預估使用費：§6${entityFee} 元
                 §e§l預估總價：§6§l$totalCost 元
                 """.trimIndent())
