@@ -17,26 +17,26 @@ object CountEntities {
         var signCount = 0
         var displayCaseCount = 0
 
-        // itemFrameCount
+        // armorStandCount and namedArmorStandCount
         val claimBox = Box(
             claim.box.min.x.toDouble(), 68.0, claim.box.min.z.toDouble(),
-            claim.box.max.x.toDouble() + 1.0, 117.0, claim.box.max.z.toDouble() + 1.0
+            claim.box.max.x.toDouble() + 0.5, 117.0, claim.box.max.z.toDouble() + 0.5
         )
-        world.getEntitiesByClass(ItemFrameEntity::class.java, claimBox) { true }.forEach { _ -> itemFrameCount++ }
-
-        // armorStandCount and namedArmorStandCount
-        val offset = 0.01
-        val claimBoxWithOffset = Box(
-            claim.box.min.x.toDouble() - offset, 68.0, claim.box.min.z.toDouble() - offset,
-            claim.box.max.x.toDouble() + 1.0 + offset, 117.0, claim.box.max.z.toDouble() + 1.0 + offset
-        )
-        world.getEntitiesByClass(ArmorStandEntity::class.java, claimBoxWithOffset) { true }.forEach {
+        world.getEntitiesByClass(ArmorStandEntity::class.java, claimBox) { true }.forEach {
             if (it.customName?.string?.isNotEmpty() == true) {
                 namedArmorStandCount++
             } else {
                 armorStandCount++
             }
         }
+
+        // itemFrameCount
+        val offset = 0.01
+        val claimBoxWithOffset = Box(
+            claim.box.min.x.toDouble() - offset, 68.0, claim.box.min.z.toDouble() - offset,
+            claim.box.max.x.toDouble() + 1.0 + offset, 117.0, claim.box.max.z.toDouble() + 1.0 + offset
+        )
+        world.getEntitiesByClass(ItemFrameEntity::class.java, claimBoxWithOffset) { true }.forEach { _ -> itemFrameCount++ }
 
         // signCount and displayCaseCount
         val minPos = BlockPos(claim.box.min.x, 68, claim.box.min.z)
