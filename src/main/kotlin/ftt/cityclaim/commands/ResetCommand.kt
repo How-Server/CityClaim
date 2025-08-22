@@ -73,6 +73,9 @@ object ResetCommand {
         )
 
         corners.forEach { (x, z, directions) ->
+            for (y in 70..73) {
+                world.setBlockState(BlockPos(x, y, z), Blocks.DIRT.defaultState)
+            }
             world.setBlockState(BlockPos(x, 75, z), Blocks.BAMBOO_FENCE.defaultState)
             world.setBlockState(BlockPos(x, 76, z), Blocks.LANTERN.defaultState)
             directions.forEach { (dx, dz) ->
