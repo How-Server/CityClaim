@@ -1,7 +1,9 @@
 package ftt.cityclaim.commands
 
+import com.gmail.sneakdevs.diamondeconomy.sql.TransactionType
 import com.mojang.brigadier.context.CommandContext
 import ftt.cityclaim.CityClaim.cityManager
+import ftt.cityclaim.CityClaim.moneyManager
 import ftt.cityclaim.utils.Feedback.sendFeedback
 import me.drex.itsours.claim.list.ClaimList
 import net.minecraft.block.Blocks
@@ -49,9 +51,19 @@ object ResetCommand {
 
         val lastConfirmTime = pendingResets[playerUuid]
         if (lastConfirmTime != null && (currentTime - lastConfirmTime) < CONFIRM_TIMEOUT) {
+            if (!context.source.hasPermissionLevel(4)) {
+                val playerMoney = moneyManager.getBalanceFromUUID(playerUuid)
+                if (playerMoney < 1) {
+                    pendingResets.remove(playerUuid)
+                    sendFeedback(context, "§c你的金錢不足！重置租地需要 1 元")
+                    return 0
+                }
+                moneyManager.changeBalance(playerUuid, TransactionType.EXPENSE, -1, "City中央都市 - 重置 ${claim.fullName}")
+            }
+
             pendingResets.remove(playerUuid)
             resetClaimArea(world, claimBox.minX, claimBox.minZ, size)
-            sendFeedback(context, "§a成功重置 ${size}x${size} 租地到原始狀態")
+            sendFeedback(context, "§a成功重置 ${claim.fullName} 租地到原始狀態")
             return 1
         } else {
             pendingResets[playerUuid] = currentTime
