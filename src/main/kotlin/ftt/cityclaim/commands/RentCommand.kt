@@ -69,11 +69,12 @@ object RentCommand {
         val claim = ClaimList.getClaimAt(player).getOrNull() ?: return 0
         val claimData = cityManager.getClaim(claim) ?: return 0
         claim.groupManager.getGroup(CLAIM_ROLE)?.players()?.clear()
-        if (cityManager.removeClaimOwner(claimData) != 0) {
-            sendFeedback(context, "已退租租地 "+claim.fullName)
+        if (cityManager.getClaim(claim)?.uuid != null) {
+            cityManager.removeClaimOwner(claimData)
+            sendFeedback(context, claim.fullName + "已完成退租 ")
             return 1
         }
-        sendFeedback(context, "無租地被退租")
+        sendFeedback(context, claim.fullName + "無人承租")
         return 0
     }
 }
