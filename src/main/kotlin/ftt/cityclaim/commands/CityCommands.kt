@@ -55,18 +55,18 @@ object CityCommands {
 
     fun showGuide(context: CommandContext<ServerCommandSource>): Int {
         var message = """
-            §e/city rent §r承租目前所在的租地
-            §e/city check §r查看目前所在租地的租約及實體用量
+            §e/city rent §r承租所在的租地
+            §e/city check §r查看所在租地的租約及實體用量
             §e/city renew §r開啟/關閉自動續約（預設開啟）
             §e/city share <player> §r分享租地給其他玩家
-            §e/city unshare <player> §r取消其他玩家的租地分享
-            §e/city reset §r將所在租地重置為原始狀態（僅限租地所有者）
+            §e/city unshare <player> §r取消分享租地給其他玩家
+            §e/city reset §r將所在租地重置為原始狀態（僅限租地所有者，需花費 1 How）
         """.trimIndent()
 
         val player = context.source.player
         if (player != null && player.hasPermissionLevel(4)) {
-            message = message.plus("\n§e/city register <cost> <period> §r註冊租地給玩家使用")
-            message = message.plus("\n§e/city unrent §r將所在租地退租")
+            message = message.plus("\n§b/city register <cost> <period> §r註冊租地給玩家使用")
+            message = message.plus("\n§b/city unrent §r將所在租地退租")
         }
         sendFeedback(context, message, false)
         return 1
