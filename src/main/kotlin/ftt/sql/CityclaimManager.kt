@@ -197,4 +197,17 @@ class  CityclaimManager(server: MinecraftServer) {
             it.execute()
         })
     }
+
+    fun unregisterClaim(claim: AbstractClaim): Boolean {
+        val target = getClaim(claim) ?: return false
+        if (target.uuid != null) {
+            removeClaimOwner(target)
+        }
+
+        val sql = "DELETE FROM player_claim_data WHERE claim = ?;"
+        return database.prepare(sql, {
+            it.setString(1, getClaimName(claim))
+            it.executeUpdate() > 0
+        }) ?: false
+    }
 }

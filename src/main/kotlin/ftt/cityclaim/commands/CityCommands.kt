@@ -42,6 +42,8 @@ object CityCommands {
                 .then(CommandManager.argument("cost", IntegerArgumentType.integer(1))
                     .then(CommandManager.argument("period", IntegerArgumentType.integer(1)).executes(RegisterCommand::registerClaim))))
 
+            .then(CommandManager.literal("unregister").requires(checkPermission(REGISTER)).executes(UnregisterCommand::unregisterClaim))
+
             .then(CommandManager.literal("unrent").requires(checkPermission(REGISTER)).executes(RentCommand::unrentClaim))
         )
     }
@@ -66,6 +68,7 @@ object CityCommands {
         val player = context.source.player
         if (player != null && player.hasPermissionLevel(4)) {
             message = message.plus("\n§b/city register <cost> <period> §r註冊租地給玩家使用")
+            message = message.plus("\n§b/city unregister §r取消註冊租地")
             message = message.plus("\n§b/city unrent §r將所在租地退租")
         }
         sendFeedback(context, message, false)
