@@ -34,106 +34,71 @@ object ResetCommand {
         }
 
         val world = player.world
-        val claimPos = claim.box
+        val claimBox = claim.box
+        val size = claimBox.blockCountX
 
-        val minX = claimPos.minX
-        val maxX = claimPos.maxX
-        val minZ = claimPos.minZ
-        val maxZ = claimPos.maxZ
-        val sizeX = maxX - minX + 1
-        val sizeZ = maxZ - minZ + 1
-
-        when (sizeX) {
-            10 if sizeZ == 10 -> resetToPattern10x10(world, minX, minZ)
-            15 if sizeZ == 15 -> resetToPattern15x15(world, minX, minZ)
-            20 if sizeZ == 20 -> resetToPattern20x20(world, minX, minZ)
-            else -> {
-                sendFeedback(context, "不支援的租地大小: ${sizeX}x${sizeZ}")
-                return 0
-            }
+        if (size !in listOf(10, 15, 20) || claimBox.blockCountX != claimBox.blockCountZ) {
+            sendFeedback(context, "不支援的租地大小: ${claimBox.blockCountX}x${claimBox.blockCountZ}")
+            return 0
         }
 
-        sendFeedback(context, "成功重置 ${claim.name} 租地到原始狀態")
+        resetClaimArea(world, claimBox.minX, claimBox.minZ, size)
+        sendFeedback(context, "成功重置 ${size}x${size} 租地到原始狀態")
         return 1
     }
 
-    private fun resetToPattern10x10(world: World, startX: Int, startZ: Int) {
-        clearArea(world, startX, startZ, 10, 10)
-        for (x in 0 until 10) {
-            for (z in 0 until 10) {
+    private fun resetClaimArea(world: World, startX: Int, startZ: Int, size: Int) {
+        clearArea(world, startX, startZ, size)
+        setGrassGround(world, startX, startZ, size)
+        addCornerFences(world, startX, startZ, size)
+    }
+
+    private fun setGrassGround(world: World, startX: Int, startZ: Int, size: Int) {
+        for (x in 0 until size) {
+            for (z in 0 until size) {
                 world.setBlockState(BlockPos(startX + x, 74, startZ + z), Blocks.GRASS_BLOCK.defaultState)
             }
         }
-        addCornerFences(world, startX, startZ, 10, 10)
     }
 
-    private fun resetToPattern15x15(world: World, startX: Int, startZ: Int) {
-        clearArea(world, startX, startZ, 15, 15)
-        for (x in 0 until 15) {
-            for (z in 0 until 15) {
-                world.setBlockState(BlockPos(startX + x, 74, startZ + z), Blocks.GRASS_BLOCK.defaultState)
+    private fun addCornerFences(world: World, startX: Int, startZ: Int, size: Int) {
+        val endX = startX + size - 1
+        val endZ = startZ + size - 1
+
+        val corners = listOf(
+            Triple(startX, startZ, listOf(Pair(1, 0), Pair(0, 1))),
+            Triple(endX, startZ, listOf(Pair(-1, 0), Pair(0, 1))),
+            Triple(startX, endZ, listOf(Pair(1, 0), Pair(0, -1))),
+            Triple(endX, endZ, listOf(Pair(-1, 0), Pair(0, -1)))
+        )
+
+        corners.forEach { (x, z, directions) ->
+            world.setBlockState(BlockPos(x, 75, z), Blocks.BAMBOO_FENCE.defaultState)
+            world.setBlockState(BlockPos(x, 76, z), Blocks.LANTERN.defaultState)
+            directions.forEach { (dx, dz) ->
+                world.setBlockState(BlockPos(x + dx, 75, z + dz), Blocks.BAMBOO_FENCE.defaultState)
             }
         }
-        addCornerFences(world, startX, startZ, 15, 15)
     }
 
-    private fun resetToPattern20x20(world: World, startX: Int, startZ: Int) {
-        clearArea(world, startX, startZ, 20, 20)
-        for (x in 0 until 20) {
-            for (z in 0 until 20) {
-                world.setBlockState(BlockPos(startX + x, 74, startZ + z), Blocks.GRASS_BLOCK.defaultState)
-            }
-        }
-        addCornerFences(world, startX, startZ, 20, 20)
-    }
-
-    private fun addCornerFences(world: World, startX: Int, startZ: Int, sizeX: Int, sizeZ: Int) {
-        val endX = startX + sizeX - 1
-        val endZ = startZ + sizeZ - 1
-
-        world.setBlockState(BlockPos(startX, 75, startZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(startX + 1, 75, startZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(startX, 75, startZ + 1), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(startX, 76, startZ), Blocks.LANTERN.defaultState)
-
-        world.setBlockState(BlockPos(endX, 75, startZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(endX - 1, 75, startZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(endX, 75, startZ + 1), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(endX, 76, startZ), Blocks.LANTERN.defaultState)
-
-        world.setBlockState(BlockPos(startX, 75, endZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(startX + 1, 75, endZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(startX, 75, endZ - 1), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(startX, 76, endZ), Blocks.LANTERN.defaultState)
-
-        world.setBlockState(BlockPos(endX, 75, endZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(endX - 1, 75, endZ), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(endX, 75, endZ - 1), Blocks.BAMBOO_FENCE.defaultState)
-        world.setBlockState(BlockPos(endX, 76, endZ), Blocks.LANTERN.defaultState)
-    }
-
-    private fun clearArea(world: World, startX: Int, startZ: Int, sizeX: Int, sizeZ: Int) {
-        for (x in 0 until sizeX) {
-            for (z in 0 until sizeZ) {
+    private fun clearArea(world: World, startX: Int, startZ: Int, size: Int) {
+        for (x in 0 until size) {
+            for (z in 0 until size) {
                 for (y in 70..115) {
                     val pos = BlockPos(startX + x, y, startZ + z)
-                    val blockState = world.getBlockState(pos)
-                    if (blockState.block != Blocks.BEDROCK) {
+                    if (world.getBlockState(pos).block != Blocks.BEDROCK) {
                         world.setBlockState(pos, Blocks.AIR.defaultState)
                     }
                 }
             }
         }
-        val minPos = BlockPos(startX, 70, startZ)
-        val maxPos = BlockPos(startX + sizeX, 115, startZ + sizeZ)
+        val offset = 0.01
         val box = Box(
-            minPos.x.toDouble() - 0.01, minPos.y.toDouble(), minPos.z.toDouble() - 0.01,
-            maxPos.x.toDouble() + 0.01, maxPos.y.toDouble() + 1.0, maxPos.z.toDouble() + 0.01
+            startX.toDouble() - offset, 70.0, startZ.toDouble() - offset,
+            (startX + size).toDouble() + offset, 116.0, (startZ + size).toDouble() + offset
         )
-        world.getEntitiesByClass(net.minecraft.entity.Entity::class.java, box) { entity ->
-            entity !is net.minecraft.entity.player.PlayerEntity
-        }.forEach { entity ->
-            entity.discard()
-        }
+        world.getEntitiesByClass(net.minecraft.entity.Entity::class.java, box) {
+            it !is net.minecraft.entity.player.PlayerEntity
+        }.forEach { it.discard() }
     }
 }
