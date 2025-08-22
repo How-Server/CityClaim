@@ -36,6 +36,8 @@ object CityCommands {
             .then(CommandManager.literal("unshare")
                 .then(CommandManager.argument("player", GameProfileArgumentType.gameProfile()).executes(ShareCommand::unshareClaim)))
 
+            .then(CommandManager.literal("reset").executes(ResetCommand::resetClaim))
+
             .then(CommandManager.literal("register").requires(checkPermission(REGISTER))
                 .then(CommandManager.argument("cost", IntegerArgumentType.integer(1))
                     .then(CommandManager.argument("period", IntegerArgumentType.integer(1)).executes(RegisterCommand::registerClaim))))
@@ -58,11 +60,13 @@ object CityCommands {
             §e/city renew §r開啟/關閉自動續約（預設開啟）
             §e/city share <player> §r分享租地給其他玩家
             §e/city unshare <player> §r取消其他玩家的租地分享
+            §e/city reset §r將所在租地重置為原始狀態（僅限租地所有者）
         """.trimIndent()
 
         val player = context.source.player
         if (player != null && player.hasPermissionLevel(4)) {
             message = message.plus("\n§e/city register <cost> <period> §r註冊租地給玩家使用")
+            message = message.plus("\n§e/city unrent §r將所在租地退租")
         }
         sendFeedback(context, message, false)
         return 1
