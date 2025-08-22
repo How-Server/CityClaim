@@ -12,6 +12,8 @@ import net.minecraft.world.World
 import kotlin.jvm.optionals.getOrNull
 
 object ResetCommand {
+    private val pendingResets = mutableMapOf<String, Long>()
+    private const val CONFIRM_TIMEOUT = 10000L
 
     fun resetClaim(context: CommandContext<ServerCommandSource>): Int {
         val player = context.source.player ?: return 0
@@ -42,9 +44,21 @@ object ResetCommand {
             return 0
         }
 
-        resetClaimArea(world, claimBox.minX, claimBox.minZ, size)
-        sendFeedback(context, "成功重置 ${size}x${size} 租地到原始狀態")
-        return 1
+        val playerUuid = player.uuidAsString
+        val currentTime = System.currentTimeMillis()
+
+        val lastConfirmTime = pendingResets[playerUuid]
+        if (lastConfirmTime != null && (currentTime - lastConfirmTime) < CONFIRM_TIMEOUT) {
+            pendingResets.remove(playerUuid)
+            resetClaimArea(world, claimBox.minX, claimBox.minZ, size)
+            sendFeedback(context, "§a成功重置 ${size}x${size} 租地到原始狀態")
+            return 1
+        } else {
+            pendingResets[playerUuid] = currentTime
+            sendFeedback(context, "§e警告：此操作將清除租地內的所有建築物和物品！")
+            sendFeedback(context, "§e如果確定要重置，請在10秒內再次輸入 §c/city reset §e確認")
+            return 1
+        }
     }
 
     private fun resetClaimArea(world: World, startX: Int, startZ: Int, size: Int) {
