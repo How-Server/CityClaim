@@ -45,7 +45,9 @@ object CountEntities {
             val blockState = world.getBlockState(pos)
             val blockEntity = world.getBlockEntity(pos)
 
+            if (blockState.block.toString().contains("sign_post")) signCount++
             if (blockState.block.toString().contains("polydecorations:display_case")) displayCaseCount++
+
             if (blockEntity is SignBlockEntity) {
                 var hasText = false
                 for (i in 0..3) {
