@@ -2,12 +2,10 @@ package ftt.cityclaim
 
 import com.gmail.sneakdevs.diamondeconomy.DiamondUtils
 import ftt.cityclaim.commands.CityCommands
-import ftt.cityclaim.routine.CheckClaim
 import ftt.sql.CityclaimManager
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents
 import net.minecraft.server.MinecraftServer
 
 
@@ -23,7 +21,6 @@ object CityClaim : ModInitializer {
         ServerLifecycleEvents.SERVER_STARTING.register(::initDatabase)
         ServerLifecycleEvents.SERVER_STOPPED.register(::stopDatabase)
 
-        ServerPlayConnectionEvents.JOIN.register(CheckClaim::playerRent)
         CommandRegistrationCallback.EVENT.register(CityCommands::register)
     }
 

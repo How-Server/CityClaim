@@ -27,7 +27,7 @@ object CheckCommand {
         val timestamp = playerClaimData.endTime ?: 0
         var dateStr = "可租借"
         if (timestamp > System.currentTimeMillis()) {
-            dateStr = SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Date(timestamp))
+            dateStr = SimpleDateFormat("yyyy/MM/dd").format(Date(timestamp))
         }
         val claimName = playerClaimData.claim.split("@")[0]
 

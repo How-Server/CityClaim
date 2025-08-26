@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.IntegerArgumentType
 import com.mojang.brigadier.context.CommandContext
 import ftt.cityclaim.CityClaim
+import ftt.cityclaim.routine.CheckClaim
 import ftt.cityclaim.utils.Feedback.sendFeedback
 import me.lucko.fabric.api.permissions.v0.Permissions
 import net.minecraft.command.CommandRegistryAccess
@@ -45,13 +46,19 @@ object CityCommands {
             .then(CommandManager.literal("unregister").requires(checkPermission(REGISTER)).executes(UnregisterCommand::unregisterClaim))
 
             .then(CommandManager.literal("unrent").requires(checkPermission(REGISTER)).executes(RentCommand::unrentClaim))
+
+            .then(CommandManager.literal("check-all").requires(checkPermission(REGISTER)).executes(CheckClaim::playerRent))
         )
     }
 
     private fun checkPermission(permission: String): Predicate<ServerCommandSource> {
         return Predicate { source ->
-            val player = source.player ?: return@Predicate false
-            Permissions.check(player, permission)
+            val player = source.player
+            if (player == null || player.hasPermissionLevel(4)) {
+                true
+            } else {
+                Permissions.check(player, permission)
+            }
         }
     }
 
@@ -70,6 +77,7 @@ object CityCommands {
             message = message.plus("\n§b/city register <cost> <period> §r註冊租地給玩家使用")
             message = message.plus("\n§b/city unregister §r取消註冊租地")
             message = message.plus("\n§b/city unrent §r將所在租地退租")
+            message = message.plus("\n§b/city check-all 確認所有租地到期(後台每5分執行一次)" )
         }
         sendFeedback(context, message, false)
         return 1
